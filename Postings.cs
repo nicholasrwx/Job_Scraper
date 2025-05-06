@@ -1,47 +1,54 @@
-namespace CompanyList;
+namespace Job_Scraper;
 
-internal class Post
+public class Post(string address, string elementType, string className, string id)
 {
-    public string Address { get; }
-    public string ElementType { get; }
-    public string ClassName { get; }
-    public string Id { get; }
-    public string CompanyName { get; set; } = string.Empty;
-    public string PositionTitle { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public string Experience { get; set; } = string.Empty;
-
-    public Post(string address, string elementType, string className, string id = string.Empty) {
-        Address = address;
-        ElementType = elementType;
-        ClassName = className;
-        Id = id;
-    }
+    public string Address { get; } = address;
+    public string ElementType { get; } = elementType;
+    public string ClassName { get; } = className;
+    public string Id { get; } = id;
+    public string? CompanyName { get; set; }
+    public string? PositionTitle { get; set; }
+    public string? Description { get; set; }
+    public string? Experience { get; set; }
 }
 
 public static class Website
 {
     // Elements
-    private string div = "div"
+    private const string GithubCustomElement = "mat-expansion-panel";
 
     // Github Element Property Values
-    private string githubClass = ""
-    private string githubId = ""
+    private const string GithubClass = ".search-result-item";
 
-    // Github Search Strings
-    private string canada = "?keywords=canada";
-    private string unitedStates = "?keywords=united%20states";
+    // GitHub Search Keywords
+    private const string Canada = "?keywords=canada";
+    private const string UnitedStates = "?keywords=united%20states";
+
+    // Parameters
+    private const string Limit = "&limit=50";
 
     // Base URLs
-    private string github = "https://www.github.careers/careers-home/jobs";
+    private const string Github = "https://www.github.careers/careers-home/jobs";
 
     // Finalized URLs
-    private string githubCA = String.Concat(github, canada);
-    private string githubUS = String.Concat(github, unitedStates);
+    private static readonly string GithubCa = string.Concat(Github, Canada, Limit);
+    private static readonly string GithubUs = string.Concat(Github, UnitedStates, Limit);
 
-    public static IReadOnlyList<Post> Posts = new()
-    {
-        new Post(githubCA, div, githubClass, githubId),
-        new Post(githubUS, div, githubClass, githubId)
-    }
+    public static List<Post> Posts =
+    [
+        new(GithubCa, GithubCustomElement, GithubClass, string.Empty)
+        {
+            CompanyName = null,
+            PositionTitle = null,
+            Description = null,
+            Experience = null
+        },
+        new(GithubUs, GithubCustomElement, GithubClass, string.Empty)
+        {
+            CompanyName = null,
+            PositionTitle = null,
+            Description = null,
+            Experience = null
+        }
+    ];
 }
