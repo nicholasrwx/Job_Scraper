@@ -24,24 +24,34 @@ public static class Website
     {
         {"Element", ".search-result-item"},
         {"JobTitle", "a.job-title-link"},
+        {"RequestId", "p.req-id"},
+        {"ApplyButton", "a.apply-button"}
     };
 
     // GitHub Search Keywords
-    private const string Canada = "?keywords=canada";
-    private const string UnitedStates = "?keywords=united%20states";
+    private const string Canada = "&locations=,,Canada";
+    private const string UnitedStates = "&locations=,,United%20States";
 
     // Parameters
     private const string Limit = "&limit=50";
+    private const string SortBy = "&sortBy=relevance";
+    private const string Page = "&page=1";
+    private const string Categories = "categories=Engineering";
+    private const string Remote = "&tags6=Yes";
+    private const string GithubKeywords = "&keywords=Software%20Engineer";
+    
 
     // Base URLs
-    private const string Github = "https://www.github.careers/careers-home/jobs";
-    private const string Garmin = "https://www.garmin.com/en-CA/careers/job-listings/";
+    private const string Github = "https://www.github.careers/careers-home/jobs?";
+    //private const string Garmin = "https://www.garmin.com/en-CA/careers/job-listings";
 
+    
+    
     // Finalized URLs
-    private static readonly string GithubCa = string.Concat(Github, Canada, Limit);
-    private static readonly string GithubUs = string.Concat(Github, UnitedStates, Limit);
+    private static readonly string GithubCa = string.Concat(Github, Canada, Limit, SortBy, Page, Categories, Remote, GithubKeywords);
+    private static readonly string GithubUs = string.Concat(Github, UnitedStates, Limit, SortBy, Page, Categories, Remote, GithubKeywords);
 
-    public static List<Post> Posts =
+    public static readonly List<Post> Posts =
     [
         new(GithubCa, Span, GithubClasses, string.Empty)
         {
