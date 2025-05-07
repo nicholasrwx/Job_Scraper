@@ -6,7 +6,6 @@ public static class Scraper
     {
         using var playwright = await Playwright.CreateAsync();
         var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
-        var page = await browser.NewPageAsync();
 
         try
         {
@@ -14,13 +13,19 @@ public static class Scraper
             foreach(var post in posts)
             {
                 Console.WriteLine($"Addy: {post.Address}");
-                await page.GotoAsync(posts[0].Address, new PageGotoOptions { Timeout = 120000, WaitUntil = WaitUntilState.DOMContentLoaded});
-                var elements = page.QuerySelectorAllAsync(post.ClassName).Result;
+                Console.WriteLine($"Element: {post.ClassName["Element"]}");
+                var page = await browser.NewPageAsync();
+                await page.GotoAsync(post.Address,
+                    new PageGotoOptions { Timeout = 120000, WaitUntil = WaitUntilState.Load });
+                
+                var elements = page.QuerySelectorAllAsync(post.ClassName["Element"]).Result;
+                Console.WriteLine($"Element Count: {elements.Count}");
                 foreach(var element in elements)
                 {
-                    var text = element.InnerTextAsync();
-                    var type = element.GetType().ToString();
-                    Console.WriteLine($"{type}, {text}");
+                    var title = await element.QuerySelectorAsync(post.ClassName["JobTitle"]);
+                    var text = title?.InnerTextAsync().Result;
+                    //var type = element.GetType().ToString();
+                    Console.WriteLine($"{text}");
                 }
             }
             Console.WriteLine("Finished.");
