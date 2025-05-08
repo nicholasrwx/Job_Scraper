@@ -2,40 +2,63 @@ namespace Job_Scraper;
 
 public static class Scraper
 {
-    public static async Task<List<string>> UsePlayWright(List<Post> posts)
+    public static async Task<List<Result>> CollectJobPosts(List<Post> posts)
     {
         using var playwright = await Playwright.CreateAsync();
         var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
-        var postList = new List<string>();
-        
+        var postList = new List<Result>();
+
         try
         {
-            Console.WriteLine("Running...");
-            foreach(var post in posts)
+            Console.WriteLine(Start);
+            foreach (var post in posts)
             {
-                Console.WriteLine($"Addy: {post.Address}");
+                Console.WriteLine($"{CompanyName} {post.Information[Company]}");
+                Console.WriteLine($"{Address} {post.Address}");
                 var page = await browser.NewPageAsync();
                 await page.GotoAsync(post.Address,
-                    new PageGotoOptions { Timeout = 120000, WaitUntil = WaitUntilState.Load });
-                
-                var elements = page.QuerySelectorAllAsync(post.ClassName["Element"]).Result;
-                Console.WriteLine($"Element Count: {elements.Count}");
-                foreach(var element in elements)
+                    new PageGotoOptions { Timeout = ScraperTimeout, WaitUntil = WaitUntilState.Load });
+                var elements = page.QuerySelectorAllAsync(post.Information[Element]).Result;
+                Console.WriteLine($"{PostingCount} {elements.Count}");
+
+                foreach (var element in elements)
                 {
-                    var title = await element.QuerySelectorAsync(post.ClassName["JobTitle"]);
-                    var requestIdElement = await element.QuerySelectorAsync(post.ClassName["RequestId"]);
-                    var requestId = requestIdElement?.InnerTextAsync().Result;
-                    var applyButton = await element.QuerySelectorAsync(post.ClassName["ApplyButton"]);
-                    var applyLink = await page.EvaluateAsync<string>("el => el.href", applyButton);
-                    var text = title?.InnerTextAsync().Result;
-                    var postResult = $"Title: {text}, ID: {requestId}, Link: {applyLink}";
-                    postList.Add(postResult);
+                    var result = new Result();
+
+                    foreach (var entry in post.Information)
+                    {
+                        var property = typeof(Result).GetProperty(entry.Key);
+                        switch (entry.Key)
+                        {
+                            case Element:
+                                break;
+                            case Company:
+                                property?.SetValue(result, entry.Value);
+                                break;
+                            case JobTitle or RequestId:
+                                var innerElement = await element.QuerySelectorAsync(entry.Value);
+                                property?.SetValue(result, innerElement?.InnerTextAsync().Result);
+                                break;
+                            case JobLink:
+                                var linkElement = await element.QuerySelectorAsync(entry.Value);
+                                property?.SetValue(result,
+                                    await page.EvaluateAsync<string>(LinkExpression, linkElement));
+                                break;
+                            default:
+                                Console.WriteLine(NoMatch);
+                                break;
+                        }
+                    }
+
+                    postList.Add(result);
                 }
             }
-            Console.WriteLine("Finished.");
-        } catch
+
+            Console.WriteLine(Finish);
+        }
+        catch
         {
-            Console.WriteLine("There was an error processing the request");
+            Console.WriteLine(ScrapingError);
         }
 
         return postList;
